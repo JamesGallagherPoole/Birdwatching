@@ -190,20 +190,9 @@ static void SteerSeparation(void) {
 }
 
 static void UpdateBoidPosition(void) {
-    float maxSpeed = 5.0f; // Define a maximum speed for the boids
-
-    for (int i = 0; i < numBoids; i++) { // Use < instead of <=
-        // Calculate the displacement based on the current velocity and frame time
+    for (int i = 0; i < numBoids; i++) {
         Vector3 displacement = Vector3Scale(boids[i].velocity, GetFrameTime());
-
-        // Update the position of the boid
         boids[i].position = Vector3Add(boids[i].position, displacement);
-
-        // Clamp the velocity to the maximum speed
-        if (Vector3Length(boids[i].velocity) > maxSpeed) {
-            // Normalize the velocity vector and scale it to the max speed
-            boids[i].velocity = Vector3Scale(Vector3Normalize(boids[i].velocity), maxSpeed);
-        }
     }
 }
 
