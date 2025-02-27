@@ -31,9 +31,9 @@ int numBoids = 200;
 Boid boids[200] = { 0 };
 
 Vector3 worldBounds = {
-    .x = 10.0f,
-    .y = 10.0f,
-    .z = 10.0f
+    .x = 5.0f,
+    .y = 5.0f,
+    .z = 5.0f
 };
 
 
@@ -42,7 +42,9 @@ Vector3 worldBounds = {
 //----------------------------------------------------------------------------------
 static void UpdateDrawFrame(void);          // Update and draw one frame
 static void InitBoids(void);
-static void UpdateBoidMovementVector(void);
+static void UpdateBoidNeighbours(void);
+static void KeepWithinBounds(void);
+static void SteerSeparation(void);
 static void UpdateBoidPosition(void);
 
 //----------------------------------------------------------------------------------
@@ -90,36 +92,118 @@ static void InitBoids(void) {
         boids[i].position.x = GetRandomValue(- worldBounds.x,  worldBounds.x);
         boids[i].position.y = GetRandomValue(- worldBounds.y,  worldBounds.y);
         boids[i].position.z = GetRandomValue(-worldBounds.z, worldBounds.z);
-        boids[i].velocity.x = 1.0;
+        boids[i].velocity.x = GetRandomValue(-1.0, 1.0);
+        boids[i].velocity.y = GetRandomValue(-1.0, 1.0);
+        boids[i].velocity.z = GetRandomValue(-1.0, 1.0);
+
+        // Reset neighbours
+        for (int y = 0; y < 10; y++) {
+            boids[i].neighbourBoidIndexes[y] = -1;
+        }
     }
 }
 
-static void UpdateBoidMovementVector(void) {
-    for (int i = 0; i <= numBoids; i++) {
+static void UpdateBoidNeighbours(void) {
+    for (int i = 0; i < numBoids; i++) {
         // Reset neighbours
-        for (int y = 0; y <= 10; y++) {
-            boids[i].neighbourBoidIndexes[y] = 0;
+        for (int y = 0; y < 10; y++) {
+            boids[i].neighbourBoidIndexes[y] = -1;
         }
 
         int neighbourIndex = 0;
-		for (int y = 0; y <= numBoids; y++) {
+		for (int y = 0; y < numBoids; y++) {
             if (i == y) {
                 continue;
             }
 
             float distance = Vector3Distance(boids[i].position, boids[y].position);
-            if (distance < 1.0f) {
-                boids[i].neighbourBoidIndexes[neighbourIndex] = y;
-                neighbourIndex++;
+            if (distance < 3.0f) {
+                // Check alignment using dot product
+                if (Vector3DotProduct(boids[i].velocity, boids[y].velocity) > 0) {
+					boids[i].neighbourBoidIndexes[neighbourIndex] = y;
+					neighbourIndex++;
+                }
+
+                if (neighbourIndex == 10) {
+                    break;
+                }
             }
 		}
     }
 }
 
+static void KeepWithinBounds(void) {
+    for (int i = 0; i < numBoids; i++) {
+        if (boids[i].position.x > worldBounds.x) {
+            boids[i].position.x = -worldBounds.x;
+        }
+        else if (boids[i].position.x < -worldBounds.x) {
+            boids[i].position.x = worldBounds.x;
+        }
+
+        if (boids[i].position.y > worldBounds.y) {
+            boids[i].position.y = -worldBounds.y;
+        }
+        else if (boids[i].position.y < -worldBounds.y) {
+            boids[i].position.y = worldBounds.y;
+        }
+
+        if (boids[i].position.z > worldBounds.z) {
+            boids[i].position.z = -worldBounds.z;
+        }
+        else if (boids[i].position.z < -worldBounds.z) {
+            boids[i].position.z = worldBounds.z;
+        }
+    }
+}
+
+static void SteerSeparation(void) {
+    for (int i = 0; i < numBoids; i++) {
+        Vector3 direction = Vector3Zero();
+		int neighbourCount = 0;
+		for (int y = 0; y < 10; y++) {
+            if (boids[i].neighbourBoidIndexes[y] > -1) {
+                int neighborIndex = boids[i].neighbourBoidIndexes[y];
+                Vector3 neighborPosition = boids[neighborIndex].position;
+
+                // Calculate the distance vector from the boid to the neighbor
+                Vector3 toNeighbor = Vector3Subtract(neighborPosition, boids[i].position);
+                float distance = Vector3Length(toNeighbor);
+
+                // Avoid division by zero
+                if (distance > 0) {
+                    float ratio = Clamp(distance / 100.0f, 0.0f, 1.0f);
+                    Vector3 force = Vector3Scale(toNeighbor, -ratio / distance);
+                    direction = Vector3Add(direction, force); 
+                    neighbourCount++;
+                }
+            }
+
+		}
+
+        if (neighbourCount > 0) {
+            direction = Vector3Scale(direction, 1.0f / neighbourCount); // Average the direction
+        }
+
+        boids[i].velocity = Vector3Add(boids[i].velocity, direction);
+    }
+}
+
 static void UpdateBoidPosition(void) {
-    for (int i = 0; i <= numBoids; i++) {
+    float maxSpeed = 5.0f; // Define a maximum speed for the boids
+
+    for (int i = 0; i < numBoids; i++) { // Use < instead of <=
+        // Calculate the displacement based on the current velocity and frame time
         Vector3 displacement = Vector3Scale(boids[i].velocity, GetFrameTime());
+
+        // Update the position of the boid
         boids[i].position = Vector3Add(boids[i].position, displacement);
+
+        // Clamp the velocity to the maximum speed
+        if (Vector3Length(boids[i].velocity) > maxSpeed) {
+            // Normalize the velocity vector and scale it to the max speed
+            boids[i].velocity = Vector3Scale(Vector3Normalize(boids[i].velocity), maxSpeed);
+        }
     }
 }
 
@@ -129,7 +213,9 @@ static void UpdateDrawFrame(void)
     // Update
     //----------------------------------------------------------------------------------
     UpdateCamera(&camera, CAMERA_FREE);
-    UpdateBoidMovementVector();
+    KeepWithinBounds();
+    UpdateBoidNeighbours();
+    SteerSeparation();
     UpdateBoidPosition();
     //----------------------------------------------------------------------------------
 
@@ -143,6 +229,15 @@ static void UpdateDrawFrame(void)
 
 			for (int i = 0; i < numBoids; i++) {
                 DrawSphere(boids[i].position, 0.1, DARKGRAY);
+               // DrawLine3D(boids[i].position, Vector3Add(boids[i].velocity, boids[i].position), RED);
+
+                /*
+                for (int y = 0; y < 10; y++) {
+                    if (boids[i].neighbourBoidIndexes[y] > -1) {
+                        DrawLine3D(boids[i].position, boids[boids[i].neighbourBoidIndexes[y]].position, LIGHTGRAY);
+                    }
+                }
+                */
             }
             DrawGrid(10, 1.0f);
 
