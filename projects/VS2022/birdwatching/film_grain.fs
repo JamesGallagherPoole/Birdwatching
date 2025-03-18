@@ -7,19 +7,23 @@ uniform sampler2D texture0;
 uniform float time;
 uniform float grainIntensity;
 
+// Improved random function with better variation
 float random(vec2 uv) {
-	return fract(sin(dor(uv.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    return fract(sin(dot(uv, vec2(12.9898, 78.233))) * 43758.5453);
 }
 
 void main() {
-	vec4 color = texture(texture0, fragTexCoord);
+    vec4 color = texture(texture0, fragTexCoord);
 
-	float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+    // Convert to grayscale
+    float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
 
-	float noise = random(fragTexCoord * time);
-	noise = (noise - 0.5) * grainIntensity;
+    // Generate film grain noise with better randomness
+    float noise = random(fragTexCoord + vec2(time * 0.1, time * 0.2));
+    noise = (noise - 0.5) * grainIntensity;
 
-	gray = clamp(gray + noise, 0.0, 1.0);
+    // Apply noise to grayscale
+    gray = clamp(gray + noise, 0.0, 1.0);
 
-	finalColor = vec4(vec3(gray), color.a);
+    finalColor = vec4(vec3(gray), color.a);
 }
