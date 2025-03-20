@@ -2,41 +2,26 @@
 
 ### Description
 
-Watching birds
+Watching birds. A little learning project.
+Writing about it here: [My Website](https://james.poole.ie/notes/19032025)
+
+It is currently a work in progress and is not guaranteed to work! :)
 
 ### Features
 
- - $(Project Feature 01)
- - $(Project Feature 02)
- - $(Project Feature 03)
+ - Boid Algorithm
 
 ### Controls
 
-Keyboard/Mouse:
- - $(project Control 01)
- - $(project Control 02)
- - $(project Control 03)
 
 ### Screenshots
 
-_TODO: Show your game to the world, animated GIFs recommended!._
+[Screenshot](./screenshot.webp)
 
 ### Developers
 
- - $(Developer 01) - $(Role/Tasks Developed)
- - $(Developer 02) - $(Role/Tasks Developed)
- - $(Developer 03) - $(Role/Tasks Developed)
-
-### Links
-
- - YouTube Gameplay: $(YouTube Link)
- - itch.io Release: $(itch.io Game Page)
- - Steam Release: $(Steam Game Page)
+ - James Poole
 
 ### License
 
 This project sources are licensed under an unmodified zlib/libpng license, which is an OSI-certified, BSD-like license that allows static linking with closed source software. Check [LICENSE](LICENSE) for further details.
-
-$(Additional Licenses)
-
-*Copyright (c) 2024 James Poole ($(User Twitter/GitHub Name))*
