@@ -16,7 +16,7 @@
     #include <emscripten/emscripten.h>
 #endif
 
-#define MAX_BOIDS 200
+#define MAX_BOIDS 600
 #define MAX_NEIGHBOURS 30
 
 typedef struct {
@@ -34,8 +34,14 @@ int numBoids = MAX_BOIDS;
 int maxNeighbours = MAX_NEIGHBOURS;
 Boid boids[MAX_BOIDS] = { 0 };
 
+// Shader
+float time = 0.0f;
+float grainIntensity = 0.2f;
+RenderTexture2D target;
+Shader grainShader;
+
 Vector3 worldBounds = {
-    .x = 10.0f,
+    .x = 50.0f,
     .y = 10.0f,
     .z = 10.0f
 };
@@ -61,13 +67,21 @@ int main()
 {
     // Initialization
     //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    const int screenWidth = 1920;
+    const int screenHeight = 1080;
 
-    InitWindow(screenWidth, screenHeight, "raylib - project_name");
+    InitWindow(screenWidth, screenHeight, "raylib - birdwatching");
+    SetWindowState(FLAG_WINDOW_RESIZABLE);
+
+    grainShader = LoadShader(0, "film_grain.fs");
+    target = LoadRenderTexture(screenWidth, screenHeight);
+
+    float grainIntensity = 0.1f;
+    float time = 0.0f;
+
     InitBoids();
 
-    camera.position = (Vector3){ 3.0f, 3.0f, 2.0f };
+    camera.position = (Vector3){ 0.0f, -20.0f, 50.0f };
     camera.target = (Vector3){ 0.0f, 0.0f, 0.0f };
     camera.up = (Vector3){ 0.0f, 1.0f, 0.0f };
     camera.fovy = 60.0f;
@@ -88,6 +102,8 @@ int main()
 
     // De-Initialization
     //--------------------------------------------------------------------------------------
+    UnloadShader(grainShader);
+    UnloadRenderTexture(target);
     CloseWindow();                  // Close window and OpenGL context
     //--------------------------------------------------------------------------------------
 
@@ -175,7 +191,7 @@ static void KeepWithinBounds(void) {
 }
 
 static void SteerSeparation(void) {
-    float avoidFactor = 0.008;
+    float avoidFactor = 0.02;
     for (int i = 0; i < numBoids; i++) {
         Vector3 direction = Vector3Zero();
 		int neighbourCount = 0;
@@ -280,6 +296,8 @@ static void UpdateBoidPosition(void) {
 // Update and draw game frame
 static void UpdateDrawFrame(void)
 {
+    time += GetFrameTime();
+
     // Update
     //----------------------------------------------------------------------------------
     UpdateCamera(&camera, CAMERA_FREE);
@@ -294,14 +312,14 @@ static void UpdateDrawFrame(void)
 
     // Draw
     //----------------------------------------------------------------------------------
-    BeginDrawing();
+    BeginTextureMode(target);
 
         ClearBackground(RAYWHITE);
 
         BeginMode3D(camera);
 
 			for (int i = 0; i < numBoids; i++) {
-                DrawSphere(boids[i].position, 0.1, DARKGRAY);
+                DrawSphere(boids[i].position, 0.08, DARKGRAY);
                // DrawLine3D(boids[i].position, Vector3Add(boids[i].velocity, boids[i].position), RED);
 
                 /*
@@ -312,14 +330,22 @@ static void UpdateDrawFrame(void)
                 }
                 */
             }
-            DrawGrid(10, 1.0f);
+            DrawPlane((Vector3){0.0f, -20.0f, 0.0f}, (Vector2) { 300.0f, 100.0f }, RED);
 
         EndMode3D();
 
-        DrawText("Welcome to raylib basic sample", 10, 40, 20, DARKGRAY);
-
         DrawFPS(10, 10);
 
+    EndTextureMode();
+
+    BeginDrawing();
+		ClearBackground(BLACK);
+
+        BeginShaderMode(grainShader);
+            SetShaderValue(grainShader, GetShaderLocation(grainShader, "time"), &time, SHADER_UNIFORM_FLOAT);
+            SetShaderValue(grainShader, GetShaderLocation(grainShader, "grainIntensity"), &grainIntensity, SHADER_UNIFORM_FLOAT);
+            DrawTextureRec(target.texture, (Rectangle) { 0, 0, GetScreenWidth(), -GetScreenHeight() }, (Vector2) { 0, 0 }, WHITE);
+        EndShaderMode();
     EndDrawing();
     //----------------------------------------------------------------------------------
 }
