@@ -16,10 +16,13 @@
     #include <emscripten/emscripten.h>
 #endif
 
+#define MAX_BOIDS 200
+#define MAX_NEIGHBOURS 30
+
 typedef struct {
     Vector3 position;
     Vector3 velocity;
-    int neighbourBoidIndexes[30];
+    int neighbourBoidIndexes[MAX_NEIGHBOURS];
 } Boid;
 
 //----------------------------------------------------------------------------------
@@ -27,9 +30,9 @@ typedef struct {
 //----------------------------------------------------------------------------------
 Camera camera = { 0 };
 Vector3 cubePosition = { 0 };
-int numBoids = 200;
-int maxNeighbours = 30;
-Boid boids[200] = { 0 };
+int numBoids = MAX_BOIDS;
+int maxNeighbours = MAX_NEIGHBOURS;
+Boid boids[MAX_BOIDS] = { 0 };
 
 Vector3 worldBounds = {
     .x = 10.0f,
