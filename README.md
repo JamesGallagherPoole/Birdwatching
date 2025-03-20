@@ -16,7 +16,7 @@ It is currently a work in progress and is not guaranteed to work! :)
 
 ### Screenshots
 
-[Screenshot](./screenshot.webp)
+![Screenshot](./screenshot.webp)
 
 ### Developers
 
