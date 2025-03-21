@@ -35,7 +35,7 @@ int maxNeighbours = MAX_NEIGHBOURS;
 Boid boids[MAX_BOIDS] = { 0 };
 
 // Shader
-float time = 0.0f;
+float timeCounter = 0.0f;
 float grainIntensity = 0.2f;
 RenderTexture2D target;
 Shader grainShader;
@@ -77,7 +77,7 @@ int main()
     target = LoadRenderTexture(screenWidth, screenHeight);
 
     float grainIntensity = 0.1f;
-    float time = 0.0f;
+    float timeCounter = 0.0f;
 
     InitBoids();
 
@@ -296,7 +296,7 @@ static void UpdateBoidPosition(void) {
 // Update and draw game frame
 static void UpdateDrawFrame(void)
 {
-    time += GetFrameTime();
+    timeCounter += GetFrameTime();
 
     // Update
     //----------------------------------------------------------------------------------
@@ -342,7 +342,7 @@ static void UpdateDrawFrame(void)
 		ClearBackground(BLACK);
 
         BeginShaderMode(grainShader);
-            SetShaderValue(grainShader, GetShaderLocation(grainShader, "time"), &time, SHADER_UNIFORM_FLOAT);
+            SetShaderValue(grainShader, GetShaderLocation(grainShader, "time"), &timeCounter, SHADER_UNIFORM_FLOAT);
             SetShaderValue(grainShader, GetShaderLocation(grainShader, "grainIntensity"), &grainIntensity, SHADER_UNIFORM_FLOAT);
             DrawTextureRec(target.texture, (Rectangle) { 0, 0, GetScreenWidth(), -GetScreenHeight() }, (Vector2) { 0, 0 }, WHITE);
         EndShaderMode();
