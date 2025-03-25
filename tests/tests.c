@@ -1,7 +1,7 @@
 #include "munit.h"
 
 static MunitResult
-test_boids(void)
+test_boids(const MunitParameter params[], void *user_data)
 {
     return MUNIT_OK;
 }
