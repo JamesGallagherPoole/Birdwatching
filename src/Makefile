@@ -21,7 +21,7 @@
 #
 #**************************************************************************************************
 
-.PHONY: all clean
+.PHONY: all clean test
 
 # Define required environment variables
 #------------------------------------------------------------------------------------------------
@@ -32,11 +32,14 @@ PLATFORM              ?= PLATFORM_DESKTOP
 PROJECT_NAME          ?= birdwatching
 PROJECT_VERSION       ?= 1.0
 PROJECT_BUILD_PATH    ?= .
-PROJECT_SOURCE_FILES  ?= birdwatching.c
+PROJECT_SOURCE_FILES  ?= $(wildcard *.c)
 
-RAYLIB_SRC_PATH       ?= C:\raylib\raylib\src
+RAYLIB_SRC_PATH       ?= /home/james/Extras/raylib/src
 RAYLIB_INCLUDE_PATH   ?= $(RAYLIB_SRC_PATH)
 RAYLIB_LIB_PATH       ?= $(RAYLIB_SRC_PATH)
+
+TEST_SRC = $(wildcard ../tests/*.c)
+TEST_BIN = run_tests
 
 # Library type used for raylib: STATIC (.a) or SHARED (.so/.dll)
 RAYLIB_LIBTYPE        ?= STATIC
@@ -350,3 +353,6 @@ ifeq ($(PLATFORM),PLATFORM_WEB)
 endif
 	@echo Cleaning done
 
+test:
+	$(CC) $(CFLAGS) $(TEST_SRC) -o $(TEST_BIN)
+	./$(TEST_BIN)
