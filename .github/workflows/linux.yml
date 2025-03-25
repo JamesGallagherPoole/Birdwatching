@@ -62,6 +62,12 @@ jobs:
         cd ${{ env.PROJECT_NAME }}/src
         make PLATFORM=PLATFORM_DESKTOP BUILD_MODE=RELEASE PROJECT_CUSTOM_FLAGS=${{ env.PROJECT_CUSTOM_FLAGS }} PROJECT_BUILD_PATH=. RAYLIB_SRC_PATH=../../raylib/src
 
+    - name: Test Product
+      run: |
+        cd ${{ env.PROJECT_NAME }}/src
+        make test > test_output.log
+        cat test_output.log
+
     - name: Generate Artifacts
       run: |
         ls ${{ env.PROJECT_BUILD_PATH }}
